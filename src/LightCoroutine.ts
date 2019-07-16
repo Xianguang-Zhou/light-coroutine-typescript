@@ -50,13 +50,14 @@ export abstract class Coroutine {
                 Coroutine._current._status = Status.Suspended;
             }
             this._status = Status.Running;
-            this._link = Coroutine._current;
-            Coroutine._current = this;
             if (null != this._next) {
+                Coroutine._current = this;
                 const next = this._next;
                 this._next = resolve;
                 next();
             } else {
+                this._link = Coroutine._current;
+                Coroutine._current = this;
                 this._next = resolve;
                 this._run();
             }
@@ -69,7 +70,8 @@ export abstract class Coroutine {
     }
 
     resumable(): boolean {
-        return this._status == Status.Suspended;
+        return this._status == Status.Suspended
+            && (this._link == Coroutine._current || null == this._next);
     }
 
     protected abstract async run(): Promise<void>;
