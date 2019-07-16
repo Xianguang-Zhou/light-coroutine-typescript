@@ -1,0 +1,31 @@
+{
+    "name": "light-coroutine-typescript",
+    "description": "Coroutine library for TypeScript and JavaScript.",
+    "version": "0.0.1",
+    "author": {
+        "name": "Xianguang Zhou",
+        "email": "xianguang.zhou@outlook.com",
+        "url": "https://github.com/Xianguang-Zhou"
+    },
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/Xianguang-Zhou/light-coroutine-typescript",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Xianguang-Zhou/light-coroutine-typescript.git"
+    },
+    "scripts": {
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "files": [
+        "lib/"
+    ],
+    "main": "./lib/LightCoroutine.js",
+    "typings": "./lib/LightCoroutine.d.ts",
+    "devDependencies": {
+        "typescript": "^3.5.3"
+    },
+    "engines": {
+        "node": ">=10.14.1"
+    }
+}
