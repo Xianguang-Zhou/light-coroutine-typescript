@@ -7,7 +7,7 @@
  */
 
 export enum Status {
-    Suspended, Running, Dead
+    Created, Running, Suspended, Waiting, Dead
 }
 
 interface ResolveFunc {
@@ -19,7 +19,7 @@ export abstract class Coroutine {
     private static _current: Coroutine | null = null;
     private _link: Coroutine | null = null;
     private _next: ResolveFunc | null = null;
-    private _status: Status = Status.Suspended;
+    private _status: Status = Status.Created;
 
     constructor() {
     }
@@ -47,7 +47,7 @@ export abstract class Coroutine {
         }
         return new Promise((resolve, _reject) => {
             if (Coroutine._current != null) {
-                Coroutine._current._status = Status.Suspended;
+                Coroutine._current._status = Status.Waiting;
             }
             this._status = Status.Running;
             if (null != this._next) {
@@ -70,8 +70,9 @@ export abstract class Coroutine {
     }
 
     resumable(): boolean {
-        return this._status == Status.Suspended
-            && (this._link == Coroutine._current || null == this._next);
+        return (this._status == Status.Suspended
+            && this._link == Coroutine._current)
+            || this._status == Status.Created;
     }
 
     protected abstract async run(): Promise<void>;
