@@ -11,7 +11,7 @@ export enum Status {
 }
 
 interface ResolveFunc {
-    (value?: void | PromiseLike<void>): void;
+    (value?: unknown | PromiseLike<unknown>): void;
 }
 
 export abstract class Coroutine {
@@ -24,9 +24,9 @@ export abstract class Coroutine {
     constructor() {
     }
 
-    static async yield(): Promise<void> {
-        if (!Coroutine.yieldable()) {
-            throw new Error("Not yieldable.");
+    static async suspend(message?: unknown): Promise<unknown> {
+        if (!Coroutine.suspendable()) {
+            throw new Error("Not suspendable.");
         }
         return new Promise((resolve, _reject) => {
             const self = (Coroutine._current as Coroutine);
@@ -37,11 +37,11 @@ export abstract class Coroutine {
             self._status = Status.Suspended;
             const next = self._next;
             self._next = resolve;
-            (next as ResolveFunc)();
+            (next as ResolveFunc)(message);
         });
     }
 
-    async resume(): Promise<void> {
+    async resume(message?: unknown): Promise<unknown> {
         if (!this.resumable()) {
             throw new Error("Not resumable.");
         }
@@ -54,17 +54,17 @@ export abstract class Coroutine {
                 Coroutine._current = this;
                 const next = this._next;
                 this._next = resolve;
-                next();
+                next(message);
             } else {
                 this._link = Coroutine._current;
                 Coroutine._current = this;
                 this._next = resolve;
-                this._run();
+                this._run(message);
             }
         });
     }
 
-    static yieldable(): boolean {
+    static suspendable(): boolean {
         return Coroutine._current != null
             && Coroutine._current._status == Status.Running;
     }
@@ -75,16 +75,16 @@ export abstract class Coroutine {
             || this._status == Status.Created;
     }
 
-    protected abstract async run(): Promise<void>;
+    protected abstract async run(message: unknown): Promise<unknown>;
 
-    private async _run(): Promise<void> {
-        await this.run();
+    private async _run(message: unknown): Promise<void> {
+        message = await this.run(message);
         this._status = Status.Dead;
         Coroutine._current = this._link;
         if (Coroutine._current != null) {
             Coroutine._current._status = Status.Running;
         }
-        (this._next as ResolveFunc)();
+        (this._next as ResolveFunc)(message);
     }
 
     static current(): Coroutine | null {
